@@ -1,0 +1,115 @@
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<title>Chat AI - 2</title>
+		<style>
+			body {
+				font-family: Arial, sans-serif;
+				margin: 0;
+				padding: 0;
+				background-color: #4391d5;
+				align-items: center;
+				justify-content: center;
+				display: flex;
+				flex-direction: column;
+			}
+
+			body h1{
+				color: white;
+			}
+	
+			.chat {
+				max-width: 50em;
+				width: 100%;
+				height: 80%;
+				margin: 20px;
+				overflow-y: auto;
+				border: 1px solid #ccc;
+				border-radius: 5px;
+				background-color: #dadbdf;
+			}
+	
+			.message {
+				padding: 1em;
+				margin: 1em;
+				border-radius: 5px;
+				clear: both;
+			}
+	
+			.user-sender {
+				float: right;
+				background-color: #4CAF50;
+				color: white;
+			}
+	
+			.user-receiver {
+				float: left;
+				background-color: #008CBA;
+				color: white;
+			}
+	
+			.message-input {
+				width: 100%;
+				padding: 10px;
+				box-sizing: border-box;
+			}
+		</style>
+	</head>
+	<body>
+		<h1>
+			Me Ajuda
+		</h1>
+		<div id="chat" class="chat">
+		</div>
+		<input id="chat-message-input" type="text" size="100"><br>
+		<input id="chat-message-submit" type="button" value="Send">
+	</body>
+	<script type='text/javascript'>
+		window.onload = function(){
+			connectWebsocket()
+		}
+
+		function connectWebsocket(){
+			var token = "7777777777777777"
+			var user = 2
+			var toId = 1
+			var socket = new WebSocket("ws://127.0.0.1:8000/ws/" + token + `/?user=${user}`)
+
+			socket.onmessage = function(e){
+				window.message_event = e;
+				var msg = JSON.parse(e.data);
+				chat = document.getElementById('chat');
+
+				console.log(msg)
+				if (msg.fromId == user){
+					chat.innerHTML += `<div class="message user-sender">${msg.message}</div>`
+				}else{
+					chat.innerHTML += `<div class="message user-receiver">${msg.message}</div>`
+				}
+			}
+			window.ws = socket;
+
+			let headers = new Headers({'Content-Type': 'application/json'});
+
+			document.querySelector('#chat-message-input').focus();
+			document.querySelector('#chat-message-input').onkeyup = function(e) {
+				if (e.keyCode === 13) {
+					document.querySelector('#chat-message-submit').click();
+				}
+			};
+
+			document.querySelector('#chat-message-submit').onclick = function(e) {
+				const messageInputDom = document.querySelector('#chat-message-input');
+				const message = messageInputDom.value;
+				window.ws.send(JSON.stringify({
+					'message': message,
+					'toId': toId,
+					'fromId': user,
+				}));
+				messageInputDom.value = '';
+			};
+
+		}
+	</script>
+</html>
